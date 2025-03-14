@@ -11,19 +11,23 @@ tile_folder = 'tiles/'
 # initial exclude list: list of (row, col) tuples
 exclude = []
 
-gridRow = 11
+gridRow = 12
 gridCol = 10
 
 cellWidth = 65
 cellHeight = 61
 
 # right configuration
-# xPos = 430 + (cellWidth * 1)
-# yPos = 402 - (cellHeight * 3)
+# xPos = 430 + (cellWidth * 9)
+# yPos = 402 - (cellHeight * 4)
 
 # center configuration
+# xPos = 445 - (cellWidth * 3)
+# yPos = 405 - (cellHeight * 3)
+
+# left configuration
 xPos = 445 - (cellWidth * 3)
-yPos = 405 - (cellHeight * 3)
+yPos = 405 - (cellHeight * 4)
 
 def select_exclude_tiles():
     """
@@ -92,29 +96,19 @@ def getGrid():
     tile_grid = []
     screen = pyautogui.screenshot(region=(0, 0, 1920, 1080))
     screen = cv2.cvtColor(np.array(screen), cv2.COLOR_RGB2BGR)
-    screen_gray = cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY)
 
     for row in range(gridRow):
         row_tiles = []
         for col in range(gridCol):
             tile = screen[yPos + cellHeight * row : yPos + cellHeight * (row + 1),
                           xPos + cellWidth * col : xPos + cellWidth * (col + 1)]
-            tile_gray = cv2.cvtColor(tile, cv2.COLOR_BGR2GRAY)
-            tile_gray = cv2.GaussianBlur(tile_gray, (3, 3), 0)
 
             best_match = None
-            best_match_score = 0.35  # Adjust threshold as needed
+            best_match_score = 0.6 # Adjust threshold as needed
 
-            # cv2.imshow('tilefound', tile_gray)
-            # cv2.waitKey(0)
-
-            print(exclude)
-            print((row, col), (row, col) in exclude)
-
-            if(row, col) not in exclude:
+            if (row, col) not in exclude:
                 for tile_name, template in tile_template.items():
-                    template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
-                    result = cv2.matchTemplate(tile_gray, template_gray, cv2.TM_CCOEFF_NORMED)
+                    result = cv2.matchTemplate(tile, template, cv2.TM_CCOEFF_NORMED)
                     _, score, _, _ = cv2.minMaxLoc(result)
                     if score > best_match_score:
                         best_match = tile_name
@@ -209,7 +203,7 @@ def makeMove(i, j, direction):
 def main():
     # Load tile templates.
     for filename in os.listdir(tile_folder):
-        if filename.endswith(".jpg"):
+        if filename.endswith(".png"):
             tile_name = filename.split('.')[0]
             tile_template[tile_name] = cv2.imread(os.path.join(tile_folder, filename), cv2.IMREAD_COLOR)
 
@@ -234,5 +228,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-# cv2.destroyAllWindows()
